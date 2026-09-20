@@ -1,0 +1,701 @@
+{
+	"displayRows": 3,
+	"displayColumns": 2,
+	"screenHeight": 64,
+	"noMoreEntries": true,
+	"canSpeed": 500,
+//	"address": ["0x12", "0x05", "0x0B", "0x03", "0x1F"],
+//	"baudAddress": ["0x12", "0x08", "0x91", "0x01", "0xE8", "0x48", "0x00", "0x2A"], // Can cause issues, if you need ~25Hz data rate set this
+//	"baudSpeed": 125000,
+	"forceKwp": false,
+	"funData": [
+    {
+      "name": "retard",
+      "values": [0, 0, 0, 0, 0, 0],
+      "expr": [
+        "(({knock status 1} & 7) == 1) ? x0 = {knock retard 1} : 0",
+        "(({knock status 1} & 7) == 2) ? x1 = {knock retard 1} : 0",
+        "(({knock status 1} & 7) == 3) ? x2 = {knock retard 1} : 0",
+        "(({knock status 2} & 7) == 4) ? x3 = {knock retard 2} : 0",
+        "(({knock status 2} & 7) == 5) ? x4 = {knock retard 2} : 0",
+        "(({knock status 2} & 7) == 6) ? x5 = {knock retard 2} : 0"
+      ]
+    },
+    {
+      "name": "knock",
+      "values": [0, 0, 0, 0, 0, 0],
+      "expr": [
+        "(({knock status 1} & 7) == 1) ? x0 = {knock amplitude 1} : 0",
+        "(({knock status 1} & 7) == 2) ? x1 = {knock amplitude 1} : 0",
+        "(({knock status 1} & 7) == 3) ? x2 = {knock amplitude 1} : 0",
+        "(({knock status 2} & 7) == 4) ? x3 = {knock amplitude 2} : 0",
+        "(({knock status 2} & 7) == 5) ? x4 = {knock amplitude 2} : 0",
+        "(({knock status 2} & 7) == 6) ? x5 = {knock amplitude 2} : 0"
+      ]
+    }
+  ],
+	"ecuparam": [
+	  { //----------------MSS54HP knock sensor CAN BELOW----------------------
+		  "header": "Knock Status 1",
+			"canId": "0x700",
+			"offset": 0,
+			"dec": 0,
+			"hidden": true,
+			"noLog": true
+		},
+		{
+		  "header": "Knock Retard 1",
+			"canId": "0x700",
+			"offset": 1,
+			"expr": "x * .1",
+			"dec": 0,
+			"hidden": true,
+			"noLog": true
+		},
+		{
+		  "header": "Knock Amplitude 1",
+			"canId": "0x700",
+			"offset": 2,
+			"length": 2,
+			"dec": 0,
+			"hidden": true,
+			"noLog": true
+		},/*
+		{
+		  "header": "Knock Smoothed 1",
+			"canId": "0x700",
+			"offset": 4,
+			"length": 2,
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+		  "header": "RF5 1",
+			"canId": "0x700",
+			"offset": 5,
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},*/
+		{
+		  "header": "Knock Status 2",
+			"canId": "0x701",
+			"offset": 0,
+			"dec": 0,
+			"hidden": true,
+			"noLog": true
+		},
+		{
+		  "header": "Knock Retard 2",
+			"canId": "0x701",
+			"offset": 1,
+			"expr": "x * .1",
+			"dec": 0,
+			"hidden": true,
+			"noLog": true
+		},
+		{
+		  "header": "Knock Amplitude 2",
+			"canId": "0x701",
+			"offset": 2,
+			"length": 2,
+			"dec": 0,
+			"hidden": true,
+			"noLog": true
+		},/*
+		{
+		  "header": "Knock Smoothed 2",
+			"canId": "0x701",
+			"offset": 4,
+			"length": 2,
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+		  "header": "RF5 2",
+			"canId": "0x701",
+			"offset": 5,
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},*/
+		{ //using funData feature
+			"header": "Retard 1",
+			"expr": "getData('retard', 0)",
+			"dec": 1,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Retard 2",
+			"expr": "getData('retard', 1)",
+			"dec": 1,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Retard 3",
+			"expr": "getData('retard', 2)",
+			"dec": 1,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Retard 4",
+			"expr": "getData('retard', 3)",
+			"dec": 1,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Retard 5",
+			"expr": "getData('retard', 4)",
+			"dec": 1,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Retard 6",
+			"expr": "getData('retard', 5)",
+			"dec": 1,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Knock 1",
+			"expr": "getData('knock', 0)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Knock 2",
+			"expr": "getData('knock', 1)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Knock 3",
+			"expr": "getData('knock', 2)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Knock 4",
+			"expr": "getData('knock', 3)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Knock 5",
+			"expr": "getData('knock', 4)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Knock 6",
+			"expr": "getData('knock', 5)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{ //----------------KARTER CUSTOM BELOW----------------------
+		  "header": "Intake Air Temp",
+			"unit": "°C",
+			"canId": "0x7E0",
+			"offset": 0,
+			"expr": "x - 48",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+		  "header": "Radiator Temp",
+			"unit": "°C",
+			"canId": "0x7E0",
+			"offset": 1,
+			"expr": "x - 48",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+		  "header": "Exhaust Gas Temp",
+			"unit": "°C",
+			"canId": "0x7E0",
+			"offset": 2,
+			"length": 2,
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+		  "header": "Rel Open Cross Sec",
+			"unit": "%",
+			"canId": "0x7E0",
+			"offset": 4,
+			"length": 2,
+			"expr": "x * 0.003051757",
+			"dec": 1,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+		  "header": "LAMBDA INTEGRATOR 1",
+			"canId": "0x7E0",
+			"offset": 6,
+			"length": 2,
+			"expr": "x * 0.000030517",
+			"dec": 4,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+		  "header": "RF from AlphaN",
+			"canId": "0x7E1",
+			"offset": 0,
+			"length": 2,
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+		  "header": "MAP pressure",
+			"canId": "0x7E1",
+			"offset": 2,
+			"length": 2,
+			"expr": "x * 0.03125",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+		  "header": "RF from MAP",
+			"canId": "0x7E1",
+			"offset": 4,
+			"length": 2,
+			"dec": 4,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+		  "header": "rf_p_saug_i",
+			"canId": "0x7E1",
+			"offset": 6,
+			"length": 2,
+			"expr": "signed(x, 2) * 0.0015625",
+			"dec": 4,
+			"hidden": false,
+			"noLog": false
+		},
+		{ //-----------------EVERYTHING BELOW IS BMW CAN--------------------
+			"header": "Button byte", //clutch is disengaged when value is odd (last bit)
+			"canId": "0x329",
+			"offset": 3,
+			"hidden": false,
+			"noLog": true
+		},
+		{
+			"header": "Can button",
+			"expr": "(x >> 5)",
+			"x": "Button byte",
+			"hidden": false,
+			"noLog": true
+		},
+		{
+			"header": "Cruise active",
+			"canId": "0x545",
+			"expr": "(x & 8)",
+			"offset": 0,
+			"hidden": false,
+			"noLog": true
+		},
+		{
+			"header": "Button press",
+			"unit": "b",
+			"expr": "buttonPress(0, (x == 2) && !y, (x == 1) && !y, (x == 3) && !y)", //use all buttons on steering wheel
+			"x": "Can button", // if != 0 then button is active
+			"y": "Cruise active",
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "Speedo",
+			//"unit": "kph",
+			"unit": "mph",
+			"canId": "0x153",
+			"offset": 1,
+			"length": 2,
+			//"expr": "(x >> 4 > 4)*(x >> 3) * .0625", //kph, stock tires (26.03" diameter)
+			//"expr": "(x >> 4 > 4)*(x >> 3) * .03875", //mph, stock tires (26.03" diameter)
+			"expr": "(x >> 4 > 4)*(x >> 4) * .0751", //mph, 245/40/17 tires (24.72" diameter with stock small tire cluster setting). .0758 might be right if small setting is for 265/30/19 (25.26" diameter) - 0.93% difference 758/751
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Brake",
+			"canId": "0x153", //Also avail at 0x329 B6 Bit0
+			"offset": 0,
+			"expr": "((x & 16) == 16)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "DSC Active",
+			"canId": "0x153",
+			"offset": 0,
+			"expr": "((x & 8) == 8)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},/*
+		{
+			"header": "DSC OFF",
+			"canId": "0x153",
+			"offset": 0,
+			"expr": "((x & 4) == 4)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},*/
+		{
+			"header": "TORQ_TAR_FAST_DSC", //Total torque intervention, ASC (100-0%)
+			"alias": "ASC Torque Int",
+			"unit": "%",
+			"canId": "0x153",
+			"offset": 3,
+			"expr": "x * 0.392",
+			"dec": 0,
+			"hidden": true,
+			"noLog": false
+		},
+		{
+			"header": "Lateral G",
+			"alias": "Lat G",
+			"unit": "G",
+			"canId": "0x1F3",
+			"offset": 4,
+			"length": 2,
+			"expr": "((x >> 6) - 512) * 0.00512", // 0.00512 offset matches internal Gauge.S accelerometer 
+			"dec": 2,
+			"min": -1.2,
+			"max": 1.2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "DSC Yaw Model", //This responds to BOTH lateral acceleration AND steering angle
+			"alias": "Yaw Model",
+			"unit": "deg/s",
+			"canId": "0x1F3",
+			"offset": 0,
+			"length": 2,
+			"expr": "((((x >> 6) >= 512)*(-(x >> 6) + 512) + ((x >> 6) < 512)*((x >> 6)))*0.131)",
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Longitudinal G",
+			"alias": "Lon G",
+			"unit": "G",
+			"canId": "0x1F3",
+			"offset": 3,
+			"length": 2,
+			"expr": "((x & 1023) - 512) * 0.00391",
+			// old "expr": "((((x&512)==512)*(-(x&256)-(x&128)-(x&64)-(x&32)-(x&16)-(x&8)-(x&4)-(x&2)-(x&1))-!((x&512)==512)*((x&256)+(x&128)+(x&64)+(x&32)+(x&16)+(x&8)+(x&4)+(x&2)+(x&1)-511))*0.00391)",
+			//range of -2 - +2 G from -512 to +512
+			"dec": 2,
+			"min": -1.2,
+			"max": 1.2,
+			"hidden": false,
+			"noLog": false
+		},
+		{ //Individual Wheel Speeds
+			"header": "WS FL",
+			 "unit": "kph",
+			 "canId": "0x1F0",
+			 "offset": 0,
+			 "length": 2,
+			 "expr": "(x & 4095) * 0.0625",
+			 "dec": 1,
+			 "noLog": false
+		},
+		{
+			 "header": "WS FR",
+			 "unit": "kph",
+			 "canId": "0x1F0",
+			 "offset": 2,
+			 "length": 2,
+			 "expr": "(x & 4095) * 0.0625",
+			 "dec": 1,
+			 "noLog": false
+		},
+		{
+			 "header": "WS RL",
+			 "unit": "kph",
+			 "canId": "0x1F0",
+			 "offset": 4,
+			 "length": 2,
+			 "expr": "(x & 4095) * 0.0625",
+			 "dec": 1,
+			 "noLog": false
+		},
+		{
+			 "header": "WS RR",
+			 "unit": "kph",
+			 "canId": "0x1F0",
+			 "offset": 6,
+			 "length": 2,
+			 "expr": "(x & 4095) * 0.0625",
+			 "dec": 1,
+			 "noLog": false
+		},
+		{
+			"header": "RPM",
+			"canId": "0x316",
+			"offset": 2,
+			"length": 2,
+			"expr": "x * 0.15625",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Oil Temp",
+			"unit": "°C",
+			"canId": "0x545",
+			"offset": 4,
+			"expr": "x - 48",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},/*
+		{
+			"header": "Oil Level",
+			"unit": "L",
+			"canId": "0x545",
+			"offset": 6,
+			"expr": " x / 10 - 15.8",
+			"dec": 1,
+			"hidden": false,
+			"noLog": false
+		},*/
+		{
+			"header": "Coolant Temp",
+			"unit": "°C",
+			"canId": "0x329",
+			"offset": 1,
+			"expr": "x * .75 - 48",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Ambient Pressure",
+			"unit": "mbar",
+			"canId": "0x329",
+			"offset": 2,
+			"expr": "x * 2 + 598",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},/*
+		{
+			"header": "TPS_VIRT_CRU_CAN",
+			"unit": "%",
+			"canId": "0x329",
+			"offset": 4,
+			"expr": "x * 0.390625",
+			"dec": 1,
+			"hidden": false,
+			"noLog": false
+		},*/
+		{
+			"header": "TPS",
+			"unit": "%",
+			"canId": "0x329",
+			"offset": 5,
+			"expr": "x * 0.390625",
+			"dec": 1,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Torque", //Throttle pedal commanded
+			"unit": "%",
+			"canId": "0x316",
+			"offset": 4,
+			"expr": "x * 0.390625",
+			"max": 100,
+			"min": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Clutch",
+			"expr": "!(x & 1)",
+			"x": "Button byte",
+			"dec": 0,
+			"hidden": false,
+			"noLog": true
+		},
+		{
+			"header": "Gear",
+			"expr": "lutTable(\"Gear\", (y*z/x))",
+			"x": "Speedo",
+			"y": "RPM",
+			"z": "Clutch",
+			"lutTable": [
+				{ "x": 33	,	"y": 	0},
+				{ "x": 40.89	,	"y": 	6},
+				{ "x": 49.26	,	"y": 	5},
+				{ "x": 60.59	,	"y": 	4},
+				{ "x": 82.27	,	"y": 	3},
+				{ "x": 124.64	,	"y": 	2},
+				{ "x": 208.38	,	"y": 	1},
+				{ "x": 250	,	"y": 	0}
+			],
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Steering Angle", //Angle: angle startbit: 0, length: 15 bit order and type: Intel LSB, unsigned, gain: 0.044 angle sign bit: bit 15
+			"canId": "0x1F5",
+			"unit": "deg",
+			"expr": "(x > 32768)*((x-32768)*.044) + (x<32768)*(-.044*x)",
+			"offset": 0,
+			"length": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "AFR",
+			"canId": "0x180",
+			"offset": 0,
+			"length": 2,
+			"reverseEndianness": true,
+			"expr": "x * 0.00147", // Resolution is .0001 Lambda/bit, stoichiometric ratio used is 14.7
+			"dec": 1,
+			"max": 22,
+			"min": 7,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Total G",
+			"alias": "Tot G",
+			"expr": "sqrt(x*x + z*z)",
+			"x": "Lateral G",
+			"z": "Longitudinal G",
+			"dec": 2,
+			"max": 1.2,
+			"min": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "Ambient Temp",
+			"unit": "°C",
+			"canId": "0x615",
+			"offset": 3,
+			"expr": "x",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},/*
+		{
+			"header": "Displayed Speed",
+			"unit": "mph",
+			"canId": "0x615",
+			"offset": 6,
+			"expr": "(x * 2 + 4) * .6214",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},*/
+		{
+			// Reference: https://www.ms4x.net/index.php?title=CAN_Bus_ID_0x615_ICL3
+			"header": "Interior Night Lighting",
+			"unit": "bool",
+			"canId": "0x615",
+			"offset": 1,
+			"length": 1,
+			// Bit 2: Interior Night Lighting - 0 off, 1 on
+			"expr": "(x & 4) >> 2",
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "Brightness",
+			"expr": "setBrightness(lutTable(\"Brightness\", x))",
+			"x": "Interior Night Lighting",
+			"lutTable": [
+					{ "x": 0, "y": 100 },
+					{ "x": 1, "y": 50  }
+			],
+			"hidden": true,
+			"noLog": true
+		}/*,
+		{
+			// Reference: https://www.ms4x.net/index.php?title=CAN_Bus_ID_0x613_ICL2
+			"header": "Fuel Level",
+			"unit": "L",
+			// "unit": "gal", // Change unit if going to gal
+			"canId": "0x613",
+			"offset": 2,
+			"length": 1,
+			// Bits 0-6: Fuel level measured in L
+			// Bit 7: Fuel light status
+			"expr": "(x & 127)",
+			//"expr": "(x & 127) * 0.264172", // Change expr if going to gal
+			"dec": 0,
+			// "dec": 1, // Change dec if going to gal
+			"hidden": false,
+			"noLog": false
+		}*/,
+		{ //--------------HIDES THE BULLSHIT BELOW--------------
+			"header": "Analog 1",
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "Analog 2",
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "Analog 3",
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "Analog 4",
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "Analog 5",
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "Analog 6",
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "Analog 7",
+			"hidden": true,
+			"noLog": true
+		}
+	]
+}
