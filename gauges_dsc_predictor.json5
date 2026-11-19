@@ -19,12 +19,13 @@
 	"funData": [
 		{
 			"name": "dsc_os",
-			"values": [0, 0],
+			"values": [0, 0, 0],
 			// x0 = entry/hold latch: arms over the bar, releases when err drops below the firmware hold (2.00 deg/s tapered like the bar = bar x 0.5, ~1.65 at 105-115 km/h)
 			// x1 = optional IIR of OS err — leave commented unless you want to try it
 			"expr": [
-				"({os err} > {os bar}) ? x0 = 1 : (({os err} > ({os bar} * 0.5)) && (x0 == 1)) ? x0 = 1 : x0 = 0"
-				// ,"x1 = 0.797*x1 + 0.203*{os err}" // firmware-like IIR; retune if Gauge.S is not ~100 Hz
+				"({os err} > {os bar}) ? x0 = 1 : (({os err} > ({os bar} * 0.5)) && (x0 == 1)) ? x0 = 1 : x0 = 0",
+				"({us err} > {us bar}) ? x1 = 1 : (({us err} > ({us bar} * 0.5)) && (x1 == 1)) ? x1 = 1 : x1 = 0" // x1 = US latch, firmware hold 1.50 at >=72 km/h (bar x 0.5)
+				// ,"x2 = 0.797*x2 + 0.203*{os err}" // firmware-like IIR; retune if Gauge.S is not ~100 Hz
 			]
 		}
 	],
@@ -138,6 +139,66 @@
 		{
 			"header": "OS hold", // 1 while latched: arm at OS trip, release below bar x 0.5 (firmware hold, ~1.65 deg/s at sweeper speeds)
 			"expr": "getData('dsc_os', 0)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US err", // r_ref - |Yaw|; positive = understeer (both turn directions)
+			"unit": "deg/s",
+			"expr": "y - ((x<0)?(-x):x)",
+			"x": "Yaw",
+			"y": "r_ref",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US bar", // mode-1 set A understeer bar: 5.00 deg/s <=43.2 km/h, 3.00 flat >=72 (identical on ZCP)
+			"unit": "deg/s",
+			"expr": "lutTable(\"US bar\", x)",
+			"x": "v DSC",
+			"lutTable": [
+				{ "x":   0.0, "y": 5.0 },
+				{ "x":  43.2, "y": 5.0 },
+				{ "x":  72.0, "y": 3.0 },
+				{ "x": 200.0, "y": 3.0 }
+			],
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US margin", // bar - err; >0 under the bar, <0 predicted understeer trip
+			"unit": "deg/s",
+			"expr": "x - y",
+			"x": "US bar",
+			"y": "US err",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US trip",
+			"expr": "(y > x)",
+			"x": "US bar",
+			"y": "US err",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US near", // within 0.5 deg/s of the bar, or over
+			"expr": "((x - y) < 0.5)",
+			"x": "US bar",
+			"y": "US err",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US hold", // latched: arm at US trip, release below bar x 0.5 (1.50 deg/s at speed)
+			"expr": "getData('dsc_os', 1)",
 			"dec": 0,
 			"hidden": false,
 			"noLog": false
