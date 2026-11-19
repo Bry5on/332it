@@ -1,0 +1,146 @@
+// Gauge.S on-device DSC oversteer predictor (non-ZCP dataset 10, mode-1 set A).
+// Paste the ecuparam objects into the existing "ecuparam" array (after Yaw, Steering Angle, WS RL, WS RR).
+// If you want entry/hold hysteresis, also merge the funData object into the existing "funData" array.
+//
+// What this predicts: mode-1 first-trip oversteer, the false-DSC sweeper case.
+// r_ref and the tapered bar ALWAYS use MK60-view speed (v DSC from rear wheels, no tyre factor).
+// That is the v the module itself uses. Do not feed Speedo into these — it is already in true mph.
+//
+// OS err = |Yaw| - r_ref, with r_ref from |Steering Angle|, so left and right turns both work.
+// (In the logs, steer and yaw typically have opposite signs; magnitudes are what the compare uses.)
+// OS margin > 0 means under the bar; OS trip is 1 when the residual exceeds the live bar.
+// OS near is 1 when the margin is under 0.5 deg/s (includes already over).
+//
+// Item-1 firmware IIR (y = 0.797*old + 0.203*new at ~10 ms) is not applied on the live error:
+// Gauge.S sample rate is usually slower, so that coefficient would over-lag. A commented IIR
+// is in funData if you want to experiment. The OS hold latch (release at bar x 0.5) is rate-safe.
+
+{
+	"funData": [
+		{
+			"name": "dsc_os",
+			"values": [0, 0],
+			// x0 = entry/hold latch: arms over the bar, releases when err drops below the firmware hold (2.00 deg/s tapered like the bar = bar x 0.5, ~1.65 at 105-115 km/h)
+			// x1 = optional IIR of OS err — leave commented unless you want to try it
+			"expr": [
+				"({os err} > {os bar}) ? x0 = 1 : (({os err} > ({os bar} * 0.5)) && (x0 == 1)) ? x0 = 1 : x0 = 0"
+				// ,"x1 = 0.797*x1 + 0.203*{os err}" // firmware-like IIR; retune if Gauge.S is not ~100 Hz
+			]
+		}
+	],
+
+	"ecuparam": [
+		{
+			"header": "v DSC", // MK60-view km/h from the rear wheels (flash 2090 mm). Feeds r_ref and OS bar.
+			"unit": "kph",
+			"expr": "0.5*(x+y)",
+			"x": "WS RL",
+			"y": "WS RR",
+			"dec": 1,
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "SW ratio", // LENKWINKELKENNLINIE_2 set 4 (ZCP rack, wert_04), ratio = y/1024
+			"expr": "lutTable(\"SW ratio\", (x<0)?(-x):x)",
+			"x": "Steering Angle",
+			"lutTable": [
+				{ "x":   0, "y": 16.800 },
+				{ "x":  20, "y": 16.672 },
+				{ "x":  40, "y": 16.545 },
+				{ "x":  80, "y": 16.290 },
+				{ "x": 160, "y": 15.781 },
+				{ "x": 211, "y": 15.980 }
+			],
+			"dec": 3,
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "r_ref", // non-ZCP dataset 10: L = 1846/675 m, v_ch = 96.15 km/h
+			"unit": "deg/s",
+			"expr": "x * ((y<0)?(-y):y) / (9.84533 * z * (1 + (x/96.15)*(x/96.15)))",
+			"x": "v DSC",
+			"y": "Steering Angle",
+			"z": "SW ratio",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		/*
+		{
+			"header": "r_ref Z", // optional ZCP dataset 10: L = 1845/675 m, v_ch = 119.04 km/h (B=2400)
+			"unit": "deg/s",
+			"expr": "x * ((y<0)?(-y):y) / (9.84 * z * (1 + (x/119.04)*(x/119.04)))",
+			"x": "v DSC",
+			"y": "Steering Angle",
+			"z": "SW ratio",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		*/
+		{
+			"header": "OS err", // |Yaw| - r_ref; positive = oversteer (both turn directions)
+			"unit": "deg/s",
+			"expr": "((x<0)?(-x):x) - y",
+			"x": "Yaw",
+			"y": "r_ref",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS bar", // mode-1 set A taper on MK60-view speed: 4.00 deg/s at 43–72 km/h, 3.00 at ≥126
+			"unit": "deg/s",
+			"expr": "lutTable(\"OS bar\", x)",
+			"x": "v DSC",
+			"lutTable": [
+				{ "x":   0.0, "y": 9.597 },
+				{ "x":  18.0, "y": 9.597 },
+				{ "x":  43.2, "y": 3.999 },
+				{ "x":  72.0, "y": 3.999 },
+				{ "x": 126.0, "y": 2.999 },
+				{ "x": 200.0, "y": 2.999 }
+			],
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS margin", // bar - err; >0 under the bar, <0 predicted trip
+			"unit": "deg/s",
+			"expr": "x - y",
+			"x": "OS bar",
+			"y": "OS err",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS trip", // 1 when OS err exceeds the live mode-1 bar (first-trip compare)
+			"expr": "(y > x)",
+			"x": "OS bar",
+			"y": "OS err",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS near", // 1 when within 0.5 deg/s of the bar, or already over it
+			"expr": "((x - y) < 0.5)",
+			"x": "OS bar",
+			"y": "OS err",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS hold", // 1 while latched: arm at OS trip, release below bar x 0.5 (firmware hold, ~1.65 deg/s at sweeper speeds)
+			"expr": "getData('dsc_os', 0)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		}
+	]
+}
