@@ -123,43 +123,61 @@
 		},*/
 		{ //using funData feature
 			"header": "Retard 1",
+			"alias": "TARD 1",
 			"expr": "getData('retard', 0)",
 			"dec": 1,
+			"min": 0,
+			"max": 10,
 			"hidden": false,
 			"noLog": false
 		},
 		{
 			"header": "Retard 2",
+			"alias": "TARD 2",
 			"expr": "getData('retard', 1)",
 			"dec": 1,
+			"min": 0,
+			"max": 10,
 			"hidden": false,
 			"noLog": false
 		},
 		{
 			"header": "Retard 3",
+			"alias": "TARD 3",
 			"expr": "getData('retard', 2)",
 			"dec": 1,
+			"min": 0,
+			"max": 10,
 			"hidden": false,
 			"noLog": false
 		},
 		{
 			"header": "Retard 4",
+			"alias": "TARD 4",
 			"expr": "getData('retard', 3)",
 			"dec": 1,
+			"min": 0,
+			"max": 10,
 			"hidden": false,
 			"noLog": false
 		},
 		{
 			"header": "Retard 5",
+			"alias": "TARD 5",
 			"expr": "getData('retard', 4)",
 			"dec": 1,
+			"min": 0,
+			"max": 10,
 			"hidden": false,
 			"noLog": false
 		},
 		{
 			"header": "Retard 6",
+			"alias": "TARD 6",
 			"expr": "getData('retard', 5)",
 			"dec": 1,
+			"min": 0,
+			"max": 10,
 			"hidden": false,
 			"noLog": false
 		},
@@ -332,9 +350,9 @@
 			"canId": "0x153",
 			"offset": 1,
 			"length": 2,
-			//"expr": "(x >> 4 > 4)*(x >> 3) * .0625", //kph, stock tires (26.03" diameter)
-			//"expr": "(x >> 4 > 4)*(x >> 3) * .03875", //mph, stock tires (26.03" diameter)
-			"expr": "(x >> 4 > 4)*(x >> 4) * .0751", //mph, 245/40/17 tires (24.72" diameter with stock small tire cluster setting). .0758 might be right if small setting is for 265/30/19 (25.26" diameter) - 0.93% difference 758/751
+			//"expr": "(x >> 4 > 4)*(x >> 3) * .0625", //kph, raw MK60 view (2090 mm, ~stock tires)
+			//"expr": "(x >> 4 > 4)*(x >> 3) * 0.03884", //mph, raw MK60 view (2090 mm, ~stock tires): 0.0625 x 0.621371
+			"expr": "(x >> 4 > 4)*(x >> 3) * 0.03665", // true mph on 245/40R17: 0.0625 km/h x 0.9437 (MK60 assumes 2090 mm, tire is 1972 mm) x 0.621371
 			"dec": 0,
 			"hidden": false,
 			"noLog": false
@@ -384,7 +402,7 @@
 			"canId": "0x1F3",
 			"offset": 4,
 			"length": 2,
-			"expr": "((x >> 6) - 512) * 0.00512", // 0.00512 offset matches internal Gauge.S accelerometer 
+			"expr": "((x >> 6) - 512) * 0.004894", // MK60 firmware: 1 mg internal x 837/4096 -> 0.004894 g/count
 			"dec": 2,
 			"min": -1.2,
 			"max": 1.2,
@@ -392,13 +410,13 @@
 			"noLog": false
 		},
 		{
-			"header": "DSC Yaw Model", //This responds to BOTH lateral acceleration AND steering angle
-			"alias": "Yaw Model",
+			"header": "Yaw", // MK60 yaw-rate sensor (offset-corrected), not the model
+			"alias": "Yaw",
 			"unit": "deg/s",
 			"canId": "0x1F3",
 			"offset": 0,
 			"length": 2,
-			"expr": "((((x >> 6) >= 512)*(-(x >> 6) + 512) + ((x >> 6) < 512)*((x >> 6)))*0.131)",
+			"expr": "((((x >> 6) >= 512)*(-(x >> 6) + 512) + ((x >> 6) < 512)*((x >> 6)))* 0.12223)", // 0.12223 deg/s per count (1/20000 rad/s x 384/16384)
 			"hidden": false,
 			"noLog": false
 		},
@@ -409,8 +427,7 @@
 			"canId": "0x1F3",
 			"offset": 3,
 			"length": 2,
-			"expr": "((x & 1023) - 512) * 0.00391",
-			// old "expr": "((((x&512)==512)*(-(x&256)-(x&128)-(x&64)-(x&32)-(x&16)-(x&8)-(x&4)-(x&2)-(x&1))-!((x&512)==512)*((x&256)+(x&128)+(x&64)+(x&32)+(x&16)+(x&8)+(x&4)+(x&2)+(x&1)-511))*0.00391)",
+			"expr": "((x & 1023) - 511) * 0.003193", // MK60 firmware: zero = 511, 1023 = invalid, 0.003193 g/count
 			//range of -2 - +2 G from -512 to +512
 			"dec": 2,
 			"min": -1.2,
@@ -424,7 +441,7 @@
 			 "canId": "0x1F0",
 			 "offset": 0,
 			 "length": 2,
-			 "expr": "(x & 4095) * 0.0625",
+			 "expr": "(x & 4095) * 0.0625", // km/h as the MK60 sees it (2090 mm assumed); x 0.9437 for true speed on 245/40R17
 			 "dec": 1,
 			 "noLog": false
 		},
@@ -434,7 +451,7 @@
 			 "canId": "0x1F0",
 			 "offset": 2,
 			 "length": 2,
-			 "expr": "(x & 4095) * 0.0625",
+			 "expr": "(x & 4095) * 0.0625", // km/h as the MK60 sees it (2090 mm assumed); x 0.9437 for true speed on 245/40R17
 			 "dec": 1,
 			 "noLog": false
 		},
@@ -444,7 +461,7 @@
 			 "canId": "0x1F0",
 			 "offset": 4,
 			 "length": 2,
-			 "expr": "(x & 4095) * 0.0625",
+			 "expr": "(x & 4095) * 0.0625", // km/h as the MK60 sees it (2090 mm assumed); x 0.9437 for true speed on 245/40R17
 			 "dec": 1,
 			 "noLog": false
 		},
@@ -454,7 +471,7 @@
 			 "canId": "0x1F0",
 			 "offset": 6,
 			 "length": 2,
-			 "expr": "(x & 4095) * 0.0625",
+			 "expr": "(x & 4095) * 0.0625", // km/h as the MK60 sees it (2090 mm assumed); x 0.9437 for true speed on 245/40R17
 			 "dec": 1,
 			 "noLog": false
 		},
