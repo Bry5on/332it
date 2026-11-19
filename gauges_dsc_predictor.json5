@@ -70,7 +70,7 @@
 		},
 		/*
 		{
-			"header": "r_ref Z", // optional ZCP dataset 10: L = 1845/675 m, v_ch = 119.04 km/h (B=2400)
+			"header": "r_ref ZCP", // optional ZCP dataset 10: L = 1845/675 m, v_ch = 119.04 km/h (B=2400)
 			"unit": "deg/s",
 			"expr": "x * ((y<0)?(-y):y) / (9.84 * z * (1 + (x/119.04)*(x/119.04)))",
 			"x": "v DSC",
