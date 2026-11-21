@@ -9,31 +9,42 @@
 //	"baudSpeed": 125000,
 	"forceKwp": false,
 	"funData": [
-    {
-      "name": "retard",
-      "values": [0, 0, 0, 0, 0, 0],
-      "expr": [
-        "(({knock status 1} & 7) == 1) ? x0 = {knock retard 1} : 0",
-        "(({knock status 1} & 7) == 2) ? x1 = {knock retard 1} : 0",
-        "(({knock status 1} & 7) == 3) ? x2 = {knock retard 1} : 0",
-        "(({knock status 2} & 7) == 4) ? x3 = {knock retard 2} : 0",
-        "(({knock status 2} & 7) == 5) ? x4 = {knock retard 2} : 0",
-        "(({knock status 2} & 7) == 6) ? x5 = {knock retard 2} : 0"
-      ]
-    },
-    {
-      "name": "knock",
-      "values": [0, 0, 0, 0, 0, 0],
-      "expr": [
-        "(({knock status 1} & 7) == 1) ? x0 = {knock amplitude 1} : 0",
-        "(({knock status 1} & 7) == 2) ? x1 = {knock amplitude 1} : 0",
-        "(({knock status 1} & 7) == 3) ? x2 = {knock amplitude 1} : 0",
-        "(({knock status 2} & 7) == 4) ? x3 = {knock amplitude 2} : 0",
-        "(({knock status 2} & 7) == 5) ? x4 = {knock amplitude 2} : 0",
-        "(({knock status 2} & 7) == 6) ? x5 = {knock amplitude 2} : 0"
-      ]
-    }
-  ],
+	{
+		"name": "retard",
+		"values": [0, 0, 0, 0, 0, 0],
+		"expr": [
+			"(({knock status 1} & 7) == 1) ? x0 = {knock retard 1} : 0",
+			"(({knock status 1} & 7) == 2) ? x1 = {knock retard 1} : 0",
+			"(({knock status 1} & 7) == 3) ? x2 = {knock retard 1} : 0",
+			"(({knock status 2} & 7) == 4) ? x3 = {knock retard 2} : 0",
+			"(({knock status 2} & 7) == 5) ? x4 = {knock retard 2} : 0",
+			"(({knock status 2} & 7) == 6) ? x5 = {knock retard 2} : 0"
+		]
+	},
+	{
+		"name": "knock",
+		"values": [0, 0, 0, 0, 0, 0],
+		"expr": [
+			"(({knock status 1} & 7) == 1) ? x0 = {knock amplitude 1} : 0",
+			"(({knock status 1} & 7) == 2) ? x1 = {knock amplitude 1} : 0",
+			"(({knock status 1} & 7) == 3) ? x2 = {knock amplitude 1} : 0",
+			"(({knock status 2} & 7) == 4) ? x3 = {knock amplitude 2} : 0",
+			"(({knock status 2} & 7) == 5) ? x4 = {knock amplitude 2} : 0",
+			"(({knock status 2} & 7) == 6) ? x5 = {knock amplitude 2} : 0"
+	    ]
+	}/*,
+	{
+		"name": "dsc_os",
+		"values": [0, 0, 0],
+		// x0 = entry/hold latch: arms over the bar, releases when err drops below the firmware hold (2.00 deg/s tapered like the bar = bar x 0.5, ~1.65 at 105-115 km/h)
+		// x1 = optional IIR of OS err — leave commented unless you want to try it
+		"expr": [
+			"({os err} > {os bar}) ? x0 = 1 : (({os err} > ({os bar} * 0.5)) && (x0 == 1)) ? x0 = 1 : x0 = 0",
+			"({us err} > {us bar}) ? x1 = 1 : (({us err} > ({us bar} * 0.5)) && (x1 == 1)) ? x1 = 1 : x1 = 0" // x1 = US latch, firmware hold 1.50 at >=72 km/h (bar x 0.5)
+			// ,"x2 = 0.797*x2 + 0.203*{os err}" // firmware-like IIR; retune if Gauge.S is not ~100 Hz
+		]
+	}*/
+	],
 	"ecuparam": [
 	  { //----------------MSS54HP knock sensor CAN BELOW----------------------
 		  "header": "Knock Status 1",
@@ -383,6 +394,57 @@
 			"dec": 0,
 			"hidden": false,
 			"noLog": false
+		},
+		{ // Positive torque request (ASC cut active): 0x153 byte 0 bit 0 = can_153_torque_flags bit 0
+			"header": "TCS tq req +",
+			"canId": "0x153",
+			"offset": 0,
+			"expr": "((x & 1) == 1)",
+			"dec": 0,
+			"hidden": true,
+			"noLog": false
+		},
+		{ // Negative / drag request (MSR-candidate): 0x153 byte 0 bit 1
+			"header": "TCS tq req -",
+			"canId": "0x153",
+			"offset": 0,
+			"expr": "((x & 2) == 2)",
+			"dec": 0,
+			"hidden": true,
+			"noLog": false
+		},
+		{ // Packed request bytes (0x400785 / 0x400787 / 0x400786). 0xFF in byte 3 is idle / no cut.
+			"header": "TCS tq b3",
+			"canId": "0x153",
+			"offset": 3,
+			"expr": "x * 0.392",
+			"unit": "%",
+			"dec": 0,
+			"hidden": true,
+			"noLog": false
+		},
+		{
+			"header": "TCS tq b4",
+			"canId": "0x153",
+			"offset": 4,
+			"hidden": true,
+			"noLog": false
+		},
+		{
+			"header": "TCS tq b6",
+			"canId": "0x153",
+			"offset": 6,
+			"hidden": true,
+			"noLog": false
+		},
+		{ // MDM status: 0x153 byte 7 bit 1 (this is the only MDM bit on the frame)
+			"header": "MDM status",
+			"canId": "0x153",
+			"offset": 7,
+			"expr": "((x & 2) == 2)",
+			"dec": 0,
+			"hidden": true,
+			"noLog": false
 		},*/
 		{
 			"header": "TORQ_TAR_FAST_DSC", //Total torque intervention, ASC (100-0%)
@@ -428,7 +490,7 @@
 			"offset": 3,
 			"length": 2,
 			"expr": "((x & 1023) - 511) * 0.003193", // MK60 firmware: zero = 511, 1023 = invalid, 0.003193 g/count
-			//range of -2 - +2 G from -512 to +512
+			//range of -1.63 - +1.63 G from -512 to +512
 			"dec": 2,
 			"min": -1.2,
 			"max": 1.2,
@@ -713,6 +775,176 @@
 			"header": "Analog 7",
 			"hidden": true,
 			"noLog": true
-		}
+		}/*,
+		{
+			"header": "v DSC", // MK60-view km/h from the rear wheels (flash 2090 mm). Feeds r_ref and OS bar.
+			"unit": "kph",
+			"expr": "0.5*(x+y)",
+			"x": "WS RL",
+			"y": "WS RR",
+			"dec": 1,
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "SW ratio", // LENKWINKELKENNLINIE_2 set 4 (ZCP rack, wert_04), ratio = y/1024
+			"expr": "lutTable(\"SW ratio\", (x<0)?(-x):x)",
+			"x": "Steering Angle",
+			"lutTable": [
+				{ "x":   0, "y": 16.800 },
+				{ "x":  20, "y": 16.672 },
+				{ "x":  40, "y": 16.545 },
+				{ "x":  80, "y": 16.290 },
+				{ "x": 160, "y": 15.781 },
+				{ "x": 211, "y": 15.980 }
+			],
+			"dec": 3,
+			"hidden": true,
+			"noLog": true
+		},
+		{
+			"header": "r_ref", // non-ZCP dataset 10: L = 1846/675 m, v_ch = 96.15 km/h
+			"unit": "deg/s",
+			"expr": "x * ((y<0)?(-y):y) / (9.84533 * z * (1 + (x/96.15)*(x/96.15)))",
+			"x": "v DSC",
+			"y": "Steering Angle",
+			"z": "SW ratio",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "r_ref ZCP", // optional ZCP dataset 10: L = 1845/675 m, v_ch = 119.04 km/h (B=2400)
+			"unit": "deg/s",
+			"expr": "x * ((y<0)?(-y):y) / (9.84 * z * (1 + (x/119.04)*(x/119.04)))",
+			"x": "v DSC",
+			"y": "Steering Angle",
+			"z": "SW ratio",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS err", // |Yaw| - r_ref; positive = oversteer (both turn directions)
+			"unit": "deg/s",
+			"expr": "((x<0)?(-x):x) - y",
+			"x": "Yaw",
+			"y": "r_ref",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS bar", // mode-1 set A taper on MK60-view speed: 4.00 deg/s at 43–72 km/h, 3.00 at ≥126
+			"unit": "deg/s",
+			"expr": "lutTable(\"OS bar\", x)",
+			"x": "v DSC",
+			"lutTable": [
+				{ "x":   0.0, "y": 9.597 },
+				{ "x":  18.0, "y": 9.597 },
+				{ "x":  43.2, "y": 3.999 },
+				{ "x":  72.0, "y": 3.999 },
+				{ "x": 126.0, "y": 2.999 },
+				{ "x": 200.0, "y": 2.999 }
+			],
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS margin", // bar - err; >0 under the bar, <0 predicted trip
+			"unit": "deg/s",
+			"expr": "x - y",
+			"x": "OS bar",
+			"y": "OS err",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS trip", // 1 when OS err exceeds the live mode-1 bar (first-trip compare)
+			"expr": "(y > x)",
+			"x": "OS bar",
+			"y": "OS err",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS near", // 1 when within 0.5 deg/s of the bar, or already over it
+			"expr": "((x - y) < 0.5)",
+			"x": "OS bar",
+			"y": "OS err",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "OS hold", // 1 while latched: arm at OS trip, release below bar x 0.5 (firmware hold, ~1.65 deg/s at sweeper speeds)
+			"expr": "getData('dsc_os', 0)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US err", // r_ref - |Yaw|; positive = understeer (both turn directions)
+			"unit": "deg/s",
+			"expr": "y - ((x<0)?(-x):x)",
+			"x": "Yaw",
+			"y": "r_ref",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US bar", // mode-1 set A understeer bar: 5.00 deg/s <=43.2 km/h, 3.00 flat >=72 (identical on ZCP)
+			"unit": "deg/s",
+			"expr": "lutTable(\"US bar\", x)",
+			"x": "v DSC",
+			"lutTable": [
+				{ "x":   0.0, "y": 5.0 },
+				{ "x":  43.2, "y": 5.0 },
+				{ "x":  72.0, "y": 3.0 },
+				{ "x": 200.0, "y": 3.0 }
+			],
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US margin", // bar - err; >0 under the bar, <0 predicted understeer trip
+			"unit": "deg/s",
+			"expr": "x - y",
+			"x": "US bar",
+			"y": "US err",
+			"dec": 2,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US trip",
+			"expr": "(y > x)",
+			"x": "US bar",
+			"y": "US err",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US near", // within 0.5 deg/s of the bar, or over
+			"expr": "((x - y) < 0.5)",
+			"x": "US bar",
+			"y": "US err",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		},
+		{
+			"header": "US hold", // latched: arm at US trip, release below bar x 0.5 (1.50 deg/s at speed)
+			"expr": "getData('dsc_os', 1)",
+			"dec": 0,
+			"hidden": false,
+			"noLog": false
+		}*/
 	]
 }
